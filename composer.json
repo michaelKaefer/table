@@ -1,0 +1,36 @@
+{
+    "name": "michaelkaefer/table",
+    "type": "library",
+    "description": "Library to configure and execute rendering of tables",
+    "keywords": ["table"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Project Contributors",
+            "homepage": "https://github.com/michaelKaefer/table/graphs/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "symfony/options-resolver": "^8.1",
+        "symfony/property-access": "^8.1",
+        "symfony/string": "^8.1"
+    },
+    "suggest": {
+        "twig/twig": "^3.30"
+    },
+    "autoload": {
+        "psr-4": {
+            "MichaelKaefer\\Table\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MichaelKaefer\\Table\\Tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.0",
+        "twig/twig": "^3.30"
+    }
+}

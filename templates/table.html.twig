@@ -1,0 +1,107 @@
+{%- block table -%}
+    <table{{ block('attributes') }}>
+        {%- if head is not empty %}{{ block('table_head') }}{% endif -%}
+        {{- block('table_body') -}}
+        {%- if foot is not empty %}{{ block('table_foot') }}{% endif -%}
+    </table>
+{%- endblock table -%}
+
+{%- block table_head -%}
+    <thead{% with { attr: head_attr } %}{{ block('attributes') }}{% endwith %}>
+        {%- with { rows: head } %}{{- block('rows') -}}{% endwith -%}
+    </thead>
+{%- endblock table_head -%}
+
+{%- block table_body -%}
+    <tbody{%- with { attr: body_attr } %}{{ block('attributes') }}{% endwith %}>
+        {%- with { rows: body } %}{{- block('rows') -}}{% endwith -%}
+    </tbody>
+{%- endblock table_body -%}
+
+{%- block table_foot -%}
+    <tfoot{% with { attr: foot_attr } %}{{ block('attributes') }}{% endwith %}>
+        {%- with { rows: foot } %}{{- block('rows') -}}{% endwith -%}
+    </tfoot>
+{%- endblock table_foot -%}
+
+{%- block rows -%}
+    {%- for row in rows -%}
+        {{- block('row') -}}
+    {%- endfor -%}
+{%- endblock rows -%}
+
+{%- block row -%}
+    <tr>
+        {{- block('cells') -}}
+    </tr>
+{%- endblock row -%}
+
+{%- block cells -%}
+    {%- for cell in row -%}
+        {{- block('cell') -}}
+    {%- endfor -%}
+{%- endblock cells -%}
+
+{%- block cell -%}
+    {%- if cell.vars.head -%}
+        <th{% with { attr: cell.vars.attr } %}{{ block('attributes') }}{% endwith %}>
+            {{- block('cell_content') -}}
+        </th>
+    {%- else -%}
+        <td{% with { attr: cell.vars.attr } %}{{ block('attributes') }}{% endwith %}>
+            {{- block('cell_content') -}}
+        </td>
+    {%- endif -%}
+{%- endblock cell -%}
+
+{%- block cell_content -%}
+    {%- with cell.vars only -%}
+        {%- set block_rendered = false -%}
+        {%- for block_prefix in block_prefixes -%}
+            {%- if not block_rendered and block(block_prefix ~ '_cell') is defined -%}
+                {{- block(block_prefix ~ '_cell') -}}
+                {%- set block_rendered = true -%}
+            {%- endif -%}
+        {%- endfor -%}
+        {%- if not block_rendered -%}
+            {{- block((block_prefixes|first) ~ '_cell') -}}
+        {%- endif -%}
+    {%- endwith -%}
+{%- endblock cell_content -%}
+
+{%- block text_cell -%}
+    {{ value }}
+{%- endblock text_cell -%}
+
+{%- block boolean_cell -%}
+    {{ value }}
+{%- endblock boolean_cell -%}
+
+{%- block date_time_cell -%}
+    {{ value }}
+{%- endblock date_time_cell -%}
+
+{%- block collection_cell -%}
+    {%- for cell in value -%}
+        <div>{{- block('cell_content') -}}</div>{% if not loop.last %}{{ block('collection_separator') }}{% endif %}
+    {%- endfor -%}
+{%- endblock collection_cell -%}
+
+{%- block collection_separator -%}
+    ,&nbsp;
+{%- endblock collection_separator -%}
+
+{%- block table_cell -%}
+    {% with value.vars %}{{- block('table') -}}{% endwith %}
+{%- endblock table_cell -%}
+
+{% block attributes -%}
+    {%- for attrname, attrvalue in attr -%}
+        {{- ' ' -}}
+        {%- if attrvalue is same as(true) -%}
+            {{- attrname }}="{{ attrname }}"
+        {%- elseif attrvalue is not same as(false) -%}
+            {{- attrname }}="{{ attrvalue }}"
+        {%- endif -%}
+    {%- endfor -%}
+{%- endblock attributes -%}

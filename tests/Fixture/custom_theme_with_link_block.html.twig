@@ -1,0 +1,5 @@
+{%- block link_cell -%}
+    <a href="{{ value.target }}"{% with { attr: link_attr } %}{{ block('attributes') }}{% endwith %}>
+        {{- value.label -}}
+    </a>
+{%- endblock link_cell -%}
