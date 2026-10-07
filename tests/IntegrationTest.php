@@ -84,7 +84,7 @@ class IntegrationTest extends TestCase
             ],
         );
 
-        $cellViewFactory1 = $cellViewFactory = new CellViewFactory(
+        $cellViewFactory = new CellViewFactory(
             new ChainAccessor([
                 new PropertyPathAccessor(PropertyAccess::createPropertyAccessor()),
                 new CallbackAccessor(),
@@ -94,7 +94,7 @@ class IntegrationTest extends TestCase
 
         $this->tableFactory = $tableFactory = new TableFactory(new TableBuilderFactory($tableRegistry));
 
-        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory1);
+        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory);
 
         $this->twigTableRenderer = new TwigTableRenderer(
             new Environment(
