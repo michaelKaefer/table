@@ -2,7 +2,7 @@
 
 namespace MichaelKaefer\Table;
 
-interface TableRendererInterface
+interface RendererInterface
 {
     public function render(TableView $table): string;
 }

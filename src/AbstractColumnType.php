@@ -11,7 +11,7 @@ abstract class AbstractColumnType implements ColumnTypeInterface
     {
     }
 
-    public function getBlockPrefix(): ?string
+    public function getBlockPrefix(): string
     {
         return new UnicodeString(new \ReflectionClass(static::class)->getShortName())
             ->replaceMatches('/Type$/', '')

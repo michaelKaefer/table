@@ -32,7 +32,7 @@ use MichaelKaefer\Table\Tests\Fixture\ColumnType\LinkType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\EmptyTableType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\EventRegistrationsTableType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\PersonTableType;
-use MichaelKaefer\Table\Twig\TwigTableRenderer;
+use MichaelKaefer\Table\Renderer\TwigRenderer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -44,7 +44,7 @@ class IntegrationTest extends TestCase
 {
     private TableFactory $tableFactory;
     private TableViewFactory $tableViewFactory;
-    private TwigTableRenderer $twigTableRenderer;
+    private TwigRenderer $twigRenderer;
 
     protected function setUp(): void
     {
@@ -84,7 +84,7 @@ class IntegrationTest extends TestCase
             ],
         );
 
-        $cellViewFactory1 = $cellViewFactory = new CellViewFactory(
+        $cellViewFactory = new CellViewFactory(
             new ChainAccessor([
                 new PropertyPathAccessor(PropertyAccess::createPropertyAccessor()),
                 new CallbackAccessor(),
@@ -94,9 +94,9 @@ class IntegrationTest extends TestCase
 
         $this->tableFactory = $tableFactory = new TableFactory(new TableBuilderFactory($tableRegistry));
 
-        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory1);
+        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory);
 
-        $this->twigTableRenderer = new TwigTableRenderer(
+        $this->twigRenderer = new TwigRenderer(
             new Environment(
                 new FilesystemLoader([
                     __DIR__.'/Fixture',
@@ -460,7 +460,31 @@ class IntegrationTest extends TestCase
         ];
     }
 
-    public function testAttributes(): void
+    public function testAsTableType(): void
+    {
+        $table = $this->tableFactory->create(Page::class);
+
+        $iterable = [];
+
+        $expected = <<<HTML
+        <table>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>pageCategories</th>
+                    <th>link_from_extension</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        HTML;
+
+        $this->assertTable($expected, $table, $iterable);
+    }
+
+    public function testAttr(): void
     {
         $table = $this->tableFactory->create(Page::class, [
             'attr' => ['class' => 'attr'],
@@ -493,7 +517,7 @@ class IntegrationTest extends TestCase
     {
         $tableView = $this->tableViewFactory->create($table, $iterable);
 
-        $html = $this->twigTableRenderer->render($tableView);
+        $html = $this->twigRenderer->render($tableView);
 
         $this->assertSame(self::minifyHtml($expectedHtml), $html);
     }
