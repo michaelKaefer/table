@@ -3,8 +3,8 @@
 namespace MichaelKaefer\Table\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
-use MichaelKaefer\Table\CellView;
 use MichaelKaefer\Table\TableFactory;
+use MichaelKaefer\Table\TableView;
 use MichaelKaefer\Table\TableViewFactory;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -23,10 +23,10 @@ final class TableType extends AbstractColumnType
             ->setAllowedTypes('table_options', ['array']);
     }
 
-    public function buildView(CellView $view, array $options): void
+    public function transformData(mixed $data, array $options): TableView
     {
         $table = $this->tableFactory->create($options['table_type'], $options['table_options']);
 
-        $view->vars['value'] = $this->tableViewFactory->create($table, $view->vars['value']);
+        return $this->tableViewFactory->create($table, $data);
     }
 }

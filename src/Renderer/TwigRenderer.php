@@ -1,13 +1,13 @@
 <?php
 
-namespace MichaelKaefer\Table\Twig;
+namespace MichaelKaefer\Table\Renderer;
 
-use MichaelKaefer\Table\TableRendererInterface;
+use MichaelKaefer\Table\RendererInterface;
 use MichaelKaefer\Table\TableView;
 use Twig\BlockChain;
 use Twig\Environment;
 
-final readonly class TwigTableRenderer implements TableRendererInterface
+final readonly class TwigRenderer implements RendererInterface
 {
     public function __construct(private Environment $twig, private array $themes = [])
     {

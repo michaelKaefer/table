@@ -3,7 +3,6 @@
 namespace MichaelKaefer\Table\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
-use MichaelKaefer\Table\CellView;
 use MichaelKaefer\Table\CellViewFactory;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -24,26 +23,23 @@ final class CollectionType extends AbstractColumnType
             ->setAllowedTypes('entry_options', ['array']);
     }
 
-    public function buildView(CellView $view, array $options): void
+    public function transformData(mixed $data, array $options): array
     {
-        $value = $view->vars['value'];
-
-        if (!is_iterable($value)) {
-            throw new \LogicException('The given value is not iterable.');
+        if (!is_iterable($data)) {
+            throw new \LogicException(sprintf('The given value is not iterable. Value is of type %s.', get_debug_type($data)));
         }
 
-        $newValue = [];
-
+        $cellViews = [];
         $count = 0;
-        foreach ($value as $v) {
-            $newValue[] = $this->cellViewFactory->create(
+        foreach ($data as $d) {
+            $cellViews[] = $this->cellViewFactory->create(
                 $count++,
                 $options['entry_type'],
-                $v,
+                $d,
                 $options['entry_options'],
             );
         }
 
-        $view->vars['value'] = $newValue;
+        return $cellViews;
     }
 }

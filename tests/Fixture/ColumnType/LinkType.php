@@ -4,7 +4,6 @@ namespace MichaelKaefer\Table\Tests\Fixture\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
 use MichaelKaefer\Table\CellView;
-use MichaelKaefer\Table\ColumnType\TextType;
 use MichaelKaefer\Table\Tests\Fixture\LinkableInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -24,16 +23,17 @@ final class LinkType extends AbstractColumnType
         return 'link';
     }
 
-    public function buildView(CellView $view, array $options): void
+    public function transformData(mixed $data, array $options): mixed
     {
-        $value = $view->vars['value'];
-
-        if (!$value instanceof LinkableInterface) {
+        if (!$data instanceof LinkableInterface) {
             throw new \InvalidArgumentException(sprintf('LinkType only supports type "%s" but got "%s".', LinkableInterface::class, get_debug_type($value)));
         }
 
-        $view->vars['value'] = ['target' => 'book/'.$value->getId(), 'label' => $value->getName()];
+        return ['target' => 'book/'.$data->getId(), 'label' => $data->getName()];
+    }
 
+    public function buildView(CellView $view, array $options): void
+    {
         $view->vars['link_attr'] = $options['link_attr'];
     }
 }

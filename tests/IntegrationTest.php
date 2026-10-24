@@ -2,17 +2,20 @@
 
 namespace MichaelKaefer\Table\Tests;
 
+use MichaelKaefer\Table\AbstractTableTypeExtension;
 use MichaelKaefer\Table\Accessor\CallbackAccessor;
 use MichaelKaefer\Table\Accessor\ChainAccessor;
 use MichaelKaefer\Table\Accessor\PropertyPathAccessor;
 use MichaelKaefer\Table\CellViewFactory;
 use MichaelKaefer\Table\ColumnType\BooleanType;
+use MichaelKaefer\Table\ColumnType\ColumnType;
 use MichaelKaefer\Table\ColumnType\DateTimeType;
 use MichaelKaefer\Table\TableBuilder;
 use MichaelKaefer\Table\TableBuilderFactory;
 use MichaelKaefer\Table\TableConfig;
 use MichaelKaefer\Table\TableFactory;
 use MichaelKaefer\Table\TableRegistry;
+use MichaelKaefer\Table\TableType\DataClassType;
 use MichaelKaefer\Table\TableTypeExtensionInterface;
 use MichaelKaefer\Table\TableViewFactory;
 use MichaelKaefer\Table\Tests\Fixture\Event;
@@ -32,9 +35,12 @@ use MichaelKaefer\Table\Tests\Fixture\ColumnType\LinkType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\EmptyTableType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\EventRegistrationsTableType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\PersonTableType;
-use MichaelKaefer\Table\Twig\TwigTableRenderer;
+use MichaelKaefer\Table\Renderer\TwigRenderer;
+use phpDocumentor\Reflection\PseudoTypes\ArrayKey;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Twig\Environment;
@@ -44,47 +50,91 @@ class IntegrationTest extends TestCase
 {
     private TableFactory $tableFactory;
     private TableViewFactory $tableViewFactory;
-    private TwigTableRenderer $twigTableRenderer;
+    private TwigRenderer $twigRenderer;
 
     protected function setUp(): void
     {
+        $cellViewFactory = $this->lazy($cellViewFactory, CellViewFactory::class);
+        $tableFactory = $this->lazy($tableFactory, TableFactory::class);
+        $tableViewFactory = $this->lazy($tableViewFactory, TableViewFactory::class);
+
         $tableRegistry = new TableRegistry(
-            [
-                new Fixture\TableType\EmptyTableType(),
-                new Fixture\TableType\PersonTableType(),
-                new Fixture\TableType\EventRegistrationsTableType(),
-            ],
+            new class() implements ContainerInterface
+            {
+                private array $services;
+
+                public function __construct()
+                {
+                    $this->services = [
+                        \MichaelKaefer\Table\TableType\TableType::class => new \MichaelKaefer\Table\TableType\TableType(),
+                        Fixture\TableType\EmptyTableType::class => new Fixture\TableType\EmptyTableType(),
+                        Fixture\TableType\PersonTableType::class => new Fixture\TableType\PersonTableType(),
+                        Fixture\TableType\EventRegistrationsTableType::class => new Fixture\TableType\EventRegistrationsTableType(),
+                        Page::class => new DataClassType(Page::class, [
+                            'id' => [TextType::class, []],
+                            'name' => [TextType::class, []],
+                            'pageCategories' => [CollectionType::class, []],
+                        ], [])
+                    ];
+                }
+
+                public function get(string $id)
+                {
+                    return $this->services[$id];
+                }
+
+                public function has(string $id): bool
+                {
+                    return isset($this->services[$id]);
+                }
+            },
             [
                 new Fixture\TableType\LinkTableTypeExtension(),
-                new class() implements TableTypeExtensionInterface {
-                    public static function getExtendedTypes(): iterable
+                new class() extends AbstractTableTypeExtension {
+                    public function getExtendedTypes(): iterable
                     {
                         yield Fixture\TableType\PersonTableType::class;
                     }
 
-                    public function buildTable(TableBuilder $builder): void
+                    public function buildTable(TableBuilder $builder, array $options): void
                     {
                         $builder->add('country', TextType::class);
                     }
                 },
             ],
-            [
-                TextType::class => new TextType(),
-                BooleanType::class => new BooleanType(),
-                DateTimeType::class => new DateTimeType(),
-                CollectionType::class => new CollectionType($cellViewFactory = $this->lazy($cellViewFactory, CellViewFactory::class)),
-                TableType::class => new TableType(
-                    $tableFactory = $this->lazy($tableFactory, TableFactory::class),
-                    $tableViewFactory = $this->lazy($tableViewFactory, TableViewFactory::class),
-                ),
-                Fixture\ColumnType\LinkType::class => new Fixture\ColumnType\LinkType(),
-            ],
+            new class($cellViewFactory, $tableFactory, $tableViewFactory) implements ContainerInterface
+            {
+                private array $services;
+
+                public function __construct($cellViewFactory, $tableFactory, $tableViewFactory)
+                {
+                    $this->services = [
+                        ColumnType::class => new ColumnType(),
+                        TextType::class => new TextType(),
+                        BooleanType::class => new BooleanType(),
+                        DateTimeType::class => new DateTimeType(),
+                        CollectionType::class => new CollectionType($cellViewFactory),
+                        TableType::class => new TableType($tableFactory, $tableViewFactory),
+                        Fixture\ColumnType\LinkType::class => new Fixture\ColumnType\LinkType(),
+                    ];
+                }
+
+                public function get(string $id)
+                {
+                    return $this->services[$id];
+                }
+
+                public function has(string $id): bool
+                {
+                    return isset($this->services[$id]);
+                }
+            },
             [
                 new Fixture\ColumnType\BooleanTypeExtension(),
             ],
         );
 
-        $cellViewFactory1 = $cellViewFactory = new CellViewFactory(
+        $cellViewFactory = new CellViewFactory(
             new ChainAccessor([
                 new PropertyPathAccessor(PropertyAccess::createPropertyAccessor()),
                 new CallbackAccessor(),
@@ -94,9 +144,9 @@ class IntegrationTest extends TestCase
 
         $this->tableFactory = $tableFactory = new TableFactory(new TableBuilderFactory($tableRegistry));
 
-        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory1);
+        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory, $tableRegistry);
 
-        $this->twigTableRenderer = new TwigTableRenderer(
+        $this->twigRenderer = new TwigRenderer(
             new Environment(
                 new FilesystemLoader([
                     __DIR__.'/Fixture',
@@ -337,7 +387,7 @@ class IntegrationTest extends TestCase
                     new PersonCountryTag(name: 'bar'),
                 ])),
             ],
-            '<td><div>foo</div>,&nbsp;<div>bar</div></td>',
+            '<td>foo,&nbsp;bar</td>',
         ];
         yield [
             ['country.tags', CollectionType::class, [
@@ -352,7 +402,7 @@ class IntegrationTest extends TestCase
                     new PersonCountryTag(id: 2),
                 ])),
             ],
-            '<td><div>1</div>,&nbsp;<div>2</div></td>',
+            '<td>1,&nbsp;2</td>',
         ];
         yield [
             ['[country][tags]', CollectionType::class, [
@@ -364,14 +414,14 @@ class IntegrationTest extends TestCase
             [
                 ['country' => ['tags' => [['id' => 1], ['id' => 2]]]],
             ],
-            '<td><div>1</div>,&nbsp;<div>2</div></td>',
+            '<td>1,&nbsp;2</td>',
         ];
         yield [
             ['desks', CollectionType::class, []],
             [
                 new Room(desks: [new RoomDesk(name: 'desk1'), new RoomDesk(name: 'desk2')]),
             ],
-            '<td><div>desk1</div>,&nbsp;<div>desk2</div></td>',
+            '<td>desk1,&nbsp;desk2</td>',
         ];
         yield [
             ['desks[1].screens', CollectionType::class, []],
@@ -387,7 +437,7 @@ class IntegrationTest extends TestCase
                     ]),
                 ]),
             ],
-            '<td><div>screen3</div>,&nbsp;<div>screen4</div></td>',
+            '<td>screen3,&nbsp;screen4</td>',
         ];
         yield [
             ['desks[1].screens', CollectionType::class, ['entry_type' => LinkType::class]],
@@ -403,7 +453,7 @@ class IntegrationTest extends TestCase
                     ]),
                 ]),
             ],
-            '<td><div><a href="book/3">screen3</a></div>,&nbsp;<div><a href="book/4">screen4</a></div></td>',
+            '<td><a href="book/3">screen3</a>,&nbsp;<a href="book/4">screen4</a></td>',
         ];
         yield [
             ['desks', CollectionType::class, [
@@ -425,7 +475,7 @@ class IntegrationTest extends TestCase
                     ]),
                 ]),
             ],
-            '<td><div><div>screen1</div>,&nbsp;<div>screen2</div></div>,&nbsp;<div><div>screen3</div>,&nbsp;<div>screen4</div></div></td>',
+            '<td>screen1,&nbsp;screen2,&nbsp;screen3,&nbsp;screen4</td>',
         ];
         yield [
             ['registrations', TableType::class, ['table_type' => EventRegistrationsTableType::class]],
@@ -460,7 +510,31 @@ class IntegrationTest extends TestCase
         ];
     }
 
-    public function testAttributes(): void
+    public function testAsTableType(): void
+    {
+        $table = $this->tableFactory->create(Page::class);
+
+        $iterable = [];
+
+        $expected = <<<HTML
+        <table>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>pageCategories</th>
+                    <th>link_from_extension</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        HTML;
+
+        $this->assertTable($expected, $table, $iterable);
+    }
+
+    public function testAttr(): void
     {
         $table = $this->tableFactory->create(Page::class, [
             'attr' => ['class' => 'attr'],
@@ -493,7 +567,7 @@ class IntegrationTest extends TestCase
     {
         $tableView = $this->tableViewFactory->create($table, $iterable);
 
-        $html = $this->twigTableRenderer->render($tableView);
+        $html = $this->twigRenderer->render($tableView);
 
         $this->assertSame(self::minifyHtml($expectedHtml), $html);
     }

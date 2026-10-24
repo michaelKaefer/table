@@ -2,12 +2,12 @@
 
 namespace MichaelKaefer\Table\Tests\Fixture\TableType;
 
+use MichaelKaefer\Table\AbstractTableType;
 use MichaelKaefer\Table\TableBuilder;
-use MichaelKaefer\Table\TableTypeInterface;
 
-class EmptyTableType implements TableTypeInterface
+class EmptyTableType extends AbstractTableType
 {
-    public function buildTable(TableBuilder $builder): void
+    public function buildTable(TableBuilder $builder, array $options): void
     {
     }
 }

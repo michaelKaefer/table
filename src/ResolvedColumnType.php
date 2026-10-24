@@ -7,15 +7,14 @@ final class ResolvedColumnType
     /**
      * @var array<int, ResolvedColumnType>
      */
-    private array $parents = [];
+    private array $parents;
 
-    public function __construct(private readonly ColumnTypeInterface $innerType, private readonly ?ResolvedColumnType $parent = null)
+    /**
+     * @param array<ColumnTypeExtensionInterface> $extensions
+     */
+    public function __construct(private readonly ColumnTypeInterface $innerType, ?ResolvedColumnType $parent, private readonly array $extensions)
     {
-        $type = $this->parent;
-
-        for (; $type !== null; $type = $type->getParent()) {
-            $this->parents[] = $type;
-        }
+        $this->parents = $parent !== null ? [$parent, ...$parent->getParents()] : [];
     }
 
     public function getInnerType(): ColumnTypeInterface
@@ -29,5 +28,10 @@ final class ResolvedColumnType
     public function getParents(): array
     {
         return $this->parents;
+    }
+
+    public function getExtensions(): array
+    {
+        return $this->extensions;
     }
 }

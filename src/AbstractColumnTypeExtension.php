@@ -10,6 +10,11 @@ abstract class AbstractColumnTypeExtension implements ColumnTypeExtensionInterfa
     {
     }
 
+    public function transformData(mixed $data, array $options): mixed
+    {
+        return $data;
+    }
+
     public function buildView(CellView $view, array $options): void
     {
     }

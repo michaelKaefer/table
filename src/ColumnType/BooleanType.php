@@ -3,7 +3,6 @@
 namespace MichaelKaefer\Table\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
-use MichaelKaefer\Table\CellView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class BooleanType extends AbstractColumnType
@@ -18,8 +17,13 @@ final class BooleanType extends AbstractColumnType
             ->setAllowedTypes('false_value', 'string');
     }
 
-    public function buildView(CellView $view, array $options): void
+    public function getParent(): ?string
     {
-        $view->vars['value'] = $view->vars['value'] ? $options['value'] : $options['false_value'];
+        return TextType::class;
+    }
+
+    public function transformData(mixed $data, array $options): string
+    {
+        return $data ? $options['value'] : $options['false_value'];
     }
 }

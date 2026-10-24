@@ -4,6 +4,6 @@ namespace MichaelKaefer\Table\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
 
-class TextType extends AbstractColumnType
+final class TextType extends AbstractColumnType
 {
 }

@@ -73,17 +73,9 @@
     {{ value }}
 {%- endblock text_cell -%}
 
-{%- block boolean_cell -%}
-    {{ value }}
-{%- endblock boolean_cell -%}
-
-{%- block date_time_cell -%}
-    {{ value }}
-{%- endblock date_time_cell -%}
-
 {%- block collection_cell -%}
     {%- for cell in value -%}
-        <div>{{- block('cell_content') -}}</div>{% if not loop.last %}{{ block('collection_separator') }}{% endif %}
+        {{- block('cell_content') -}}{% if not loop.last %}{{ block('collection_separator') }}{% endif %}
     {%- endfor -%}
 {%- endblock collection_cell -%}
 

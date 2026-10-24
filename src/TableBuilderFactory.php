@@ -2,8 +2,8 @@
 
 namespace MichaelKaefer\Table;
 
-use MichaelKaefer\Table\Attribute\AsTableType;
-use MichaelKaefer\Table\Attribute\TableColumn;
+use MichaelKaefer\Table\TableType\DataClassType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final readonly class TableBuilderFactory
 {
@@ -13,49 +13,45 @@ final readonly class TableBuilderFactory
 
     public function create(string $type, array $options = []): TableBuilder
     {
-        if (is_subclass_of($type, TableTypeInterface::class)) {
-            $builder = new TableBuilder($options);
-            $this->tableRegistry->getTableType($type)
-                ->buildTable($builder);
-        } else {
-            if (!class_exists($type)) {
-                throw new \InvalidArgumentException(sprintf('Class "%s" does not exist', $type));
-            }
+        $options = $this->resolve($this->tableRegistry->getTableType($type), $options);
 
-            $reflectionClass = new \ReflectionClass($type);
+        $builder = new TableBuilder($options);
 
-            if ($attributes = $reflectionClass->getAttributes(AsTableType::class)) {
-                $builder = $this->createBuilderFromAttribute($reflectionClass, $attributes[0], $options);
-            } else {
-                throw new \InvalidArgumentException(sprintf('Class "%s" does not implement "%s" nor does it have an attribute of type "%s"', $type, TableTypeInterface::class, AsTableType::class));
-            }
-        }
-
-        foreach ($this->tableRegistry->getTableTypeExtensions($type) as $tableExtension) {
-            $tableExtension->buildTable($builder);
-        }
+        $this->buildTable($builder, $this->tableRegistry->getTableType($type), $options);
 
         return $builder;
     }
 
-    private function createBuilderFromAttribute(\ReflectionClass $reflectionClass, \ReflectionAttribute $attribute, array $options): TableBuilder
+    private function resolve(ResolvedTableType $type, array $options): array
     {
-        /** @var AsTableType $asTableType */
-        $asTableType = $attribute->newInstance();
+        $resolver = new OptionsResolver();
 
-        $builder = new TableBuilder($options + $asTableType->options);
-
-        foreach ($reflectionClass->getProperties() as $property) {
-            if (!$property->getAttributes(TableColumn::class)) {
-                continue;
+        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+            $type->getInnerType()->configureOptions($resolver);
+            foreach ($type->getExtensions() as $extension) {
+                $extension->configureOptions($resolver);
             }
-
-            /** @var TableColumn $attribute */
-            $attribute = $property->getAttributes(TableColumn::class)[0]->newInstance();
-
-            $builder->addFromAttribute($property, $attribute);
         }
 
-        return $builder;
+        return $resolver->resolve($options);
+    }
+
+    private function buildTable(TableBuilder $builder, ResolvedTableType $type, array $options): void
+    {
+        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+            $innerType = $type->getInnerType();
+
+            $innerType->buildTable($builder, $options);
+
+            foreach ($type->getExtensions() as $extension) {
+                $extension->buildTable($builder, $options);
+            }
+
+//            if ($innerType instanceof DataClassType) {
+//                foreach ($type->getExtensions() as $extension) {
+//                    $extension->buildTable($builder, $options);
+//                }
+//            }
+        }
     }
 }

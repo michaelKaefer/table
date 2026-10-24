@@ -1,0 +1,6 @@
+{% use '@MichaelKaeferTable/table.html.twig' %}
+
+{%- block table -%}
+    {%- set attr = (attr|default({}))|merge({class: ((attr.class|default('')) ~ ' table')|trim}) -%}
+    {{- parent() -}}
+{%- endblock table -%}

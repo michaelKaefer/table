@@ -26,23 +26,29 @@ final readonly class CellViewFactory
             }
         }
 
-        $cellView = new CellView([
-            'value' => $value,
-            'head' => $options['head'],
-            'attr' => $options['attr'],
-            'block_prefixes' => $this->blockPrefixes($columnType),
-        ]);
+        $cellView = new CellView();
 
         $this->buildView($columnType, $cellView, $options);
+
+        $cellView->vars['value'] = $this->transformData($columnType, $value, $options);
+        $cellView->vars['head'] = $options['head'];
+        $cellView->vars['attr'] = $options['attr'];
+        $cellView->vars['priority'] = $options['priority'];
+        $cellView->vars['block_prefixes'] = $this->blockPrefixes($columnType);
 
         return $cellView;
     }
 
-    public function createHeadOrFoot(ColumnConfig $column): CellView
+    public function createHeadOrFoot(string|int $name, string $columnType, array $options): CellView
     {
+        $columnType = $this->tableRegistry->getColumnType($columnType);
+
+        $options = $this->resolve($columnType, $options);
+
         return new CellView([
-            'value' => $column->name,
+            'value' => $options['label'] ?? $name,
             'head' => true,
+            'priority' => $options['priority'],
             'block_prefixes' => ['text'],
         ]);
     }
@@ -74,23 +80,13 @@ final readonly class CellViewFactory
         return $blockPrefixes;
     }
 
-    public function resolve(ResolvedColumnType $type, array $options): array
+    private function resolve(ResolvedColumnType $type, array $options): array
     {
-        $resolver = new OptionsResolver()
-            ->setDefaults([
-                'head' => false,
-                'attr' => [],
-                'property_path' => null,
-                'getter' => null,
-            ])
-            ->setAllowedTypes('head', ['boolean'])
-            ->setAllowedTypes('attr', 'array')
-            ->setAllowedTypes('property_path', ['boolean', 'null', PropertyPathInterface::class])
-            ->setAllowedTypes('getter', ['null', 'callable']);
+        $resolver = new OptionsResolver();
 
         foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
             $type->getInnerType()->configureOptions($resolver);
-            foreach ($this->tableRegistry->getColumnTypeExtensions($type->getInnerType()::class) as $columnTypeExtension) {
+            foreach ($type->getExtensions() as $columnTypeExtension) {
                 $columnTypeExtension->configureOptions($resolver);
             }
         }
@@ -98,12 +94,33 @@ final readonly class CellViewFactory
         return $resolver->resolve($options);
     }
 
+    private function transformData(ResolvedColumnType $type, mixed $value, array $options): mixed
+    {
+        if (null !== $options['data']) {
+            $value = $options['data'];
+        }
+
+        if ($options['transformer'] ?? false) {
+            $value = ($options['transformer'])($value);
+        }
+
+        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+            $value = $type->getInnerType()->transformData($value, $options);
+
+            foreach ($type->getExtensions() as $columnTypeExtension) {
+                $value = $columnTypeExtension->transformData($value, $options);
+            }
+        }
+
+        return $value;
+    }
+
     private function buildView(ResolvedColumnType $type, CellView $cellView, array $options): void
     {
         foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
             $type->getInnerType()->buildView($cellView, $options);
 
-            foreach ($this->tableRegistry->getColumnTypeExtensions($type->getInnerType()::class) as $columnTypeExtension) {
+            foreach ($type->getExtensions() as $columnTypeExtension) {
                 $columnTypeExtension->buildView($cellView, $options);
             }
         }

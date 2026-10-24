@@ -3,7 +3,6 @@
 namespace MichaelKaefer\Table\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
-use MichaelKaefer\Table\CellView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class DateTimeType extends AbstractColumnType
@@ -16,18 +15,21 @@ final class DateTimeType extends AbstractColumnType
             ->setAllowedTypes('format', 'string');
     }
 
-    public function buildView(CellView $view, array $options): void
+    public function getParent(): ?string
     {
-        $value = $view->vars['value'];
+        return TextType::class;
+    }
 
-        if (null === $value) {
-            return;
+    public function transformData(mixed $data, array $options): ?string
+    {
+        if (null === $data) {
+            return null;
         }
 
-        if (!$value instanceof \DateTimeInterface) {
-            throw new \InvalidArgumentException(sprintf('Could not build cell view for value of type "%s". Expected value of type "%s".', get_debug_type($value), \DateTimeInterface::class));
+        if (!$data instanceof \DateTimeInterface) {
+            throw new \InvalidArgumentException(sprintf('Could not build cell view for value of type "%s". Expected value of type "%s".', get_debug_type($data), \DateTimeInterface::class));
         }
 
-        $view->vars['value'] = $view->vars['value']->format($options['format']);
+        return $data->format($options['format']);
     }
 }

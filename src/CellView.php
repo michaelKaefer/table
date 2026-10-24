@@ -16,6 +16,7 @@ final class CellView
         'value' => null,
         'attr' => [],
         'head' => false,
+        'priority' => 0,
         'block_prefixes' => [],
     ];
 

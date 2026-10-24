@@ -2,13 +2,13 @@
 
 namespace MichaelKaefer\Table\Tests\Fixture\TableType;
 
+use MichaelKaefer\Table\AbstractTableType;
 use MichaelKaefer\Table\TableBuilder;
-use MichaelKaefer\Table\TableTypeInterface;
 use MichaelKaefer\Table\ColumnType\TextType;
 
-class EventRegistrationsTableType implements TableTypeInterface
+class EventRegistrationsTableType extends AbstractTableType
 {
-    public function buildTable(TableBuilder $builder): void
+    public function buildTable(TableBuilder $builder, array $options): void
     {
         $builder->add('id', TextType::class)
             ->add('name', TextType::class);

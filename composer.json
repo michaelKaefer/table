@@ -12,9 +12,9 @@
     ],
     "require": {
         "php": ">=8.4",
-        "symfony/options-resolver": "^8.1",
-        "symfony/property-access": "^8.1",
-        "symfony/string": "^8.1"
+        "symfony/options-resolver": "8.2.x-dev",
+        "symfony/property-access": "8.2.x-dev",
+        "symfony/string": "8.2.x-dev"
     },
     "suggest": {
         "twig/twig": "^3.30"
