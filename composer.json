@@ -1,7 +1,7 @@
 {
     "name": "michaelkaefer/table",
     "type": "library",
-    "description": "Library to configure and execute rendering of tables",
+    "description": "An extensible component for rendering tables",
     "keywords": ["table"],
     "license": "MIT",
     "authors": [
