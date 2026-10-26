@@ -24,10 +24,23 @@ class AsTableTypePass implements CompilerPassInterface
                 throw new InvalidArgumentException(\sprintf('The class "%s" is tagged "table.as_table_type" but has no #[AsTableType] attribute.', $class));
             }
 
+            /** @var AsTableType $asTableType */
             $asTableType = $attributes[0]->newInstance();
             $options = $asTableType->options;
 
             $columns = [];
+
+            foreach ($asTableType->columns as $column) {
+                if (!$column->name) {
+                    throw new \InvalidArgumentException(sprintf('Columns defined in "%s" must set a "name".', TableColumn::class));
+                }
+
+                $columns[$column->name] = [
+                    $column->type ?? TextType::class,
+                    $column->options,
+                ];
+            }
+
             foreach ($reflector->getProperties() as $property) {
                 if (!$property->getAttributes(TableColumn::class)) {
                     continue;

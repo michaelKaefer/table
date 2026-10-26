@@ -7,6 +7,10 @@ class AsTableType
 {
     public function __construct(
         public array $options = [],
+        /**
+         * @var array<int, TableColumn>
+         */
+        public array $columns = [],
     ) {
     }
 }

@@ -46,12 +46,6 @@ final readonly class TableBuilderFactory
             foreach ($type->getExtensions() as $extension) {
                 $extension->buildTable($builder, $options);
             }
-
-//            if ($innerType instanceof DataClassType) {
-//                foreach ($type->getExtensions() as $extension) {
-//                    $extension->buildTable($builder, $options);
-//                }
-//            }
         }
     }
 }
