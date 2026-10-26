@@ -4,12 +4,12 @@ An extensible component for rendering tables.
 
 ## Installation
 
-```bash
-composer require michaelkaefer/table
-```
+    composer require michaelkaefer/table
 
 ## Quick start
+
 You can use attributes for any PHP object to configure the table:
+
 ```php
 namespace App\Entity;
 
@@ -44,6 +44,7 @@ Available column types are:
 - [TextType](src/ColumnType/TextType.php)
 
 Then create a `TableView` object and pass it to Twig:
+
 ```php
 namespace App\Controller;
 
@@ -81,11 +82,13 @@ final class BooksController extends AbstractController
 ```
 
 And finally render the table in `books.html.twig`:
+
 ```twig
 {{ table(table) }}
 ```
 
 The result will be:
+
 ```html
 <table>
     <thead>
@@ -99,7 +102,9 @@ The result will be:
 ```
 
 ## Table types
+
 Instead of using attributes to configure your table you can create a `TableType`:
+
 ```php
 namespace App\Table\TableType;
 
@@ -124,11 +129,13 @@ final class BookTableType extends AbstractTableType
 ```
 
 And use it:
+
 ```php
 $this->tableFactory->create(BookTableType::class);
 ```
 
 ## The iterable
+
 The iterable can be passed to `TableViewFactory` in different shapes:
 
 ```php
@@ -155,7 +162,9 @@ $this->tableViewFactory->create($tableConfig, $iterable);
 ```
 
 ## Creating a custom theme
+
 The component provides three themes. Your app configures which should be used in `config/packages/michael_kaefer_table.yaml`:
+
 ```yaml
 michael_kaefer_table:
     themes:
@@ -169,6 +178,7 @@ If you want to render your custom column types or overwrite base themes
 you can create a custom table theme.
 
 First create the Twig file, for example `templates/table/theme.html.twig`:
+
 ```twig
 {# Overwrite the table block #}
 {%- block table -%}
@@ -177,6 +187,7 @@ First create the Twig file, for example `templates/table/theme.html.twig`:
 ```
 
 Now add your theme in `config/packages/michael_kaefer_table.yaml`:
+
 ```yaml
 michael_kaefer_table:
     themes:
@@ -186,7 +197,9 @@ michael_kaefer_table:
 ```
 
 ## Creating a custom `ColumnType`
+
 Imagine you want a column containing an HTML link to the author of a book. First create a `ColumnType`:
+
 ```php
 namespace App\Table\ColumnType;
 
@@ -239,6 +252,7 @@ final class LinkType extends AbstractColumnType
 ```
 
 Use it:
+
 ```php
 namespace App\Entity;
 
@@ -263,6 +277,7 @@ final class Book
 ```
 
 Finally add a Twig block named `link_cell` to your custom table theme:
+
 ```twig
 {%- block link_cell -%}
     <a href="{{ value.target }}"{% with { attr: link_attr } %}{{ block('attributes') }}{% endwith %}>
@@ -295,7 +310,9 @@ final class CreationDateExtension extends AbstractTableTypeExtension
 ```
 
 ## Extending column types
+
 Column types can be changed application wide by using column type extensions:
+
 ```php
 namespace App\Table\TableType;
 
@@ -316,8 +333,58 @@ final class BooleanExtension extends AbstractColumnTypeExtension
 }
 ```
 
-## Testing
-```bash
-composer update
-./vendor/bin/phpunit
+## Inheritance
+
+Your TableTypes` as well as your `ColumnTypes` can inherit options and behaviour
+from base types:
+
+```php
+use MichaelKaefer\Table\AbstractTableType;
+use MichaelKaefer\Table\ColumnType\DateTimeType;
+
+final class DatedBookTableType extends AbstractTableType
+{
+    public function getParent(): ?string
+    {
+        return BookTableType::class;
+    }
+
+    public function buildTable(TableBuilder $builder, array $options): void
+    {
+        // Adds a column to the columns defined in the parent type
+        $builder->add('publishedAt', DateTimeType::class, ['priority' => 100]);
+    }
+}
 ```
+
+Imagine you only need to change the transformation and add an option to `TextType`:
+
+```php
+use MichaelKaefer\Table\AbstractColumnType;
+use MichaelKaefer\Table\ColumnType\TextType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+final class MoneyType extends AbstractColumnType
+{
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver
+            ->setDefaults(['currency' => 'EUR'])
+            ->setAllowedTypes('currency', 'string');
+    }
+
+    public function getParent(): ?string
+    {
+        return TextType::class;
+    }
+
+    public function transformData(mixed $data, array $options): string
+    {
+        return number_format($data / 100, 2, ',', '.').' '.$options['currency'];
+    }
+}
+```
+
+## Testing
+    composer update
+    ./vendor/bin/phpunit
