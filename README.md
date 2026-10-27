@@ -263,16 +263,13 @@ use MichaelKaefer\Table\Attribute\TableColumn;
 #[AsTableType]
 final class Book
 {
-    public function __construct(
-        #[TableColumn(CollectionType::class, [
-            'entry_type' => LinkType::class,
-            'entry_options' => [
-                'link_attr' => ['class' => 'my-class-name'],
-            ],
-        ])]
-        private Collection $categories;
-    ) {
-    }
+    #[TableColumn(CollectionType::class, [
+        'entry_type' => LinkType::class,
+        'entry_options' => [
+            'link_attr' => ['class' => 'my-class-name'],
+        ],
+    ])]
+    private Collection $categories;
 }
 ```
 
@@ -335,8 +332,7 @@ final class BooleanExtension extends AbstractColumnTypeExtension
 
 ## Inheritance
 
-Your TableTypes` as well as your `ColumnTypes` can inherit options and behaviour
-from base types:
+`TableTypes` as well as `ColumnTypes` can inherit options and behavior from base types:
 
 ```php
 use MichaelKaefer\Table\AbstractTableType;
