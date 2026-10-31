@@ -14,7 +14,8 @@
         "php": ">=8.4",
         "symfony/options-resolver": "^8.1",
         "symfony/property-access": "^8.1",
-        "symfony/string": "^8.1"
+        "symfony/string": "^8.1",
+        "psr/container": "^2.0"
     },
     "suggest": {
         "twig/twig": "^3.30"

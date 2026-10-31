@@ -2,6 +2,8 @@
 
 An extensible component for rendering tables.
 
+[![Build Status](https://github.com/michaelKaefer/table/actions/workflows/build.yaml/badge.svg)](https://github.com/michaelKaefer/table/actions/workflows/build.yaml)
+
 ## Installation
 
     composer require michaelkaefer/table
@@ -382,5 +384,6 @@ final class MoneyType extends AbstractColumnType
 ```
 
 ## Testing
+
     composer update
     ./vendor/bin/phpunit

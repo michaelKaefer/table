@@ -7,19 +7,14 @@ use MichaelKaefer\Table\Accessor\CallbackAccessor;
 use MichaelKaefer\Table\Accessor\ChainAccessor;
 use MichaelKaefer\Table\Accessor\PropertyPathAccessor;
 use MichaelKaefer\Table\CellViewFactory;
-use MichaelKaefer\Table\ColumnType\BooleanType;
-use MichaelKaefer\Table\ColumnType\CollectionType;
-use MichaelKaefer\Table\ColumnType\ColumnType;
-use MichaelKaefer\Table\ColumnType\DateTimeType;
-use MichaelKaefer\Table\ColumnType\TableType;
-use MichaelKaefer\Table\ColumnType\TextType;
+use MichaelKaefer\Table\ColumnType;
 use MichaelKaefer\Table\Renderer\TwigRenderer;
 use MichaelKaefer\Table\TableBuilder;
 use MichaelKaefer\Table\TableBuilderFactory;
 use MichaelKaefer\Table\TableConfig;
 use MichaelKaefer\Table\TableFactory;
 use MichaelKaefer\Table\TableRegistry;
-use MichaelKaefer\Table\TableType\DataClassType;
+use MichaelKaefer\Table\TableType;
 use MichaelKaefer\Table\TableViewFactory;
 use MichaelKaefer\Table\Tests\Fixture\ColumnType\LinkType;
 use MichaelKaefer\Table\Tests\Fixture\Event;
@@ -62,14 +57,14 @@ class IntegrationTest extends TestCase
                 public function __construct()
                 {
                     $this->services = [
-                        \MichaelKaefer\Table\TableType\TableType::class => new \MichaelKaefer\Table\TableType\TableType(),
+                        TableType\TableType::class => new TableType\TableType(),
                         EmptyTableType::class => new EmptyTableType(),
                         PersonTableType::class => new PersonTableType(),
                         EventRegistrationsTableType::class => new EventRegistrationsTableType(),
-                        Page::class => new DataClassType(Page::class, [
-                            'id' => [TextType::class, []],
-                            'name' => [TextType::class, []],
-                            'pageCategories' => [CollectionType::class, []],
+                        Page::class => new TableType\DataClassType(Page::class, [
+                            'id' => [ColumnType\TextType::class, []],
+                            'name' => [ColumnType\TextType::class, []],
+                            'pageCategories' => [ColumnType\CollectionType::class, []],
                         ], []),
                     ];
                 }
@@ -94,7 +89,7 @@ class IntegrationTest extends TestCase
 
                     public function buildTable(TableBuilder $builder, array $options): void
                     {
-                        $builder->add('country', TextType::class);
+                        $builder->add('country', ColumnType\TextType::class);
                     }
                 },
             ],
@@ -104,12 +99,12 @@ class IntegrationTest extends TestCase
                 public function __construct($cellViewFactory, $tableFactory, $tableViewFactory)
                 {
                     $this->services = [
-                        ColumnType::class => new ColumnType(),
-                        TextType::class => new TextType(),
-                        BooleanType::class => new BooleanType(),
-                        DateTimeType::class => new DateTimeType(),
-                        CollectionType::class => new CollectionType($cellViewFactory),
-                        TableType::class => new TableType($tableFactory, $tableViewFactory),
+                        ColumnType\ColumnType::class => new ColumnType\ColumnType(),
+                        ColumnType\TextType::class => new ColumnType\TextType(),
+                        ColumnType\BooleanType::class => new ColumnType\BooleanType(),
+                        ColumnType\DateTimeType::class => new ColumnType\DateTimeType(),
+                        ColumnType\CollectionType::class => new ColumnType\CollectionType($cellViewFactory),
+                        ColumnType\TableType::class => new ColumnType\TableType($tableFactory, $tableViewFactory),
                         LinkType::class => new LinkType(),
                     ];
                 }
@@ -139,7 +134,7 @@ class IntegrationTest extends TestCase
 
         $this->tableFactory = $tableFactory = new TableFactory(new TableBuilderFactory($tableRegistry));
 
-        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory, $tableRegistry);
+        $this->tableViewFactory = $tableViewFactory = new TableViewFactory($cellViewFactory);
 
         $this->twigRenderer = new TwigRenderer(
             new Environment(
@@ -218,70 +213,70 @@ class IntegrationTest extends TestCase
     public static function column(): \Generator
     {
         yield [
-            ['id', TextType::class, []],
+            ['id', ColumnType\TextType::class, []],
             [
                 new Person(),
             ],
             '<td></td>',
         ];
         yield [
-            ['[id]', TextType::class, []],
+            ['[id]', ColumnType\TextType::class, []],
             [
                 [],
             ],
             '<td></td>',
         ];
         yield [
-            ['id', TextType::class, []],
+            ['id', ColumnType\TextType::class, []],
             [
                 new Person(1),
             ],
             '<td>1</td>',
         ];
         yield [
-            ['[id]', TextType::class, []],
+            ['[id]', ColumnType\TextType::class, []],
             [
                 ['id' => 1],
             ],
             '<td>1</td>',
         ];
         yield [
-            ['active', BooleanType::class, []],
+            ['active', ColumnType\BooleanType::class, []],
             [
                 new Person(active: true),
             ],
             '<td>Yes</td>',
         ];
         yield [
-            ['[active]', BooleanType::class, []],
+            ['[active]', ColumnType\BooleanType::class, []],
             [
                 ['active' => true],
             ],
             '<td>Yes</td>',
         ];
         yield [
-            ['active', BooleanType::class, []],
+            ['active', ColumnType\BooleanType::class, []],
             [
                 new Person(active: false),
             ],
             '<td>No</td>',
         ];
         yield [
-            ['active', BooleanType::class, ['value' => 'active']],
+            ['active', ColumnType\BooleanType::class, ['value' => 'active']],
             [
                 new Person(active: true),
             ],
             '<td>active</td>',
         ];
         yield [
-            ['active', BooleanType::class, ['false_value' => 'inactive']],
+            ['active', ColumnType\BooleanType::class, ['false_value' => 'inactive']],
             [
                 new Person(active: false),
             ],
             '<td>inactive</td>',
         ];
         yield [
-            ['createdAt', DateTimeType::class, []],
+            ['createdAt', ColumnType\DateTimeType::class, []],
             [
                 new Person(createdAt: \DateTimeImmutable::createFromFormat(
                     \DateTimeInterface::RFC3339_EXTENDED,
@@ -291,91 +286,91 @@ class IntegrationTest extends TestCase
             '<td>2013-10-14T09:00:00+02:00</td>',
         ];
         yield [
-            ['name', TextType::class, []],
+            ['name', ColumnType\TextType::class, []],
             [
                 new Person(),
             ],
             '<td></td>',
         ];
         yield [
-            ['[name]', TextType::class, []],
+            ['[name]', ColumnType\TextType::class, []],
             [
                 [],
             ],
             '<td></td>',
         ];
         yield [
-            ['name', TextType::class, []],
+            ['name', ColumnType\TextType::class, []],
             [
                 new Person(name: 'foo'),
             ],
             '<td>foo</td>',
         ];
         yield [
-            ['[name]', TextType::class, []],
+            ['[name]', ColumnType\TextType::class, []],
             [
                 ['name' => 'foo'],
             ],
             '<td>foo</td>',
         ];
         yield [
-            ['country', TextType::class, []],
+            ['country', ColumnType\TextType::class, []],
             [
                 new Person(country: new PersonCountry()),
             ],
             '<td></td>',
         ];
         yield [
-            ['country', TextType::class, []],
+            ['country', ColumnType\TextType::class, []],
             [
                 new Person(country: new PersonCountry(name: 'foo')),
             ],
             '<td>foo</td>',
         ];
         yield [
-            ['country.name', TextType::class, []],
+            ['country.name', ColumnType\TextType::class, []],
             [
                 new Person(country: new PersonCountry(name: 'foo')),
             ],
             '<td>foo</td>',
         ];
         yield [
-            ['[country][name]', TextType::class, []],
+            ['[country][name]', ColumnType\TextType::class, []],
             [
                 ['country' => ['name' => 'foo']],
             ],
             '<td>foo</td>',
         ];
         yield [
-            ['country.category', TextType::class, []],
+            ['country.category', ColumnType\TextType::class, []],
             [
                 new Person(country: new PersonCountry(category: new PersonCountryCategory(name: 'foo'))),
             ],
             '<td>foo</td>',
         ];
         yield [
-            ['country.category.id', TextType::class, []],
+            ['country.category.id', ColumnType\TextType::class, []],
             [
                 new Person(country: new PersonCountry(category: new PersonCountryCategory(id: 1))),
             ],
             '<td>1</td>',
         ];
         yield [
-            ['[country][category][id]', TextType::class, []],
+            ['[country][category][id]', ColumnType\TextType::class, []],
             [
                 ['country' => ['category' => ['id' => 1]]],
             ],
             '<td>1</td>',
         ];
         yield [
-            ['country.tags', CollectionType::class, []],
+            ['country.tags', ColumnType\CollectionType::class, []],
             [
                 new Person(country: new PersonCountry(tags: [])),
             ],
             '<td></td>',
         ];
         yield [
-            ['country.tags', CollectionType::class, []],
+            ['country.tags', ColumnType\CollectionType::class, []],
             [
                 new Person(country: new PersonCountry(tags: [
                     new PersonCountryTag(name: 'foo'),
@@ -385,8 +380,8 @@ class IntegrationTest extends TestCase
             '<td>foo,&nbsp;bar</td>',
         ];
         yield [
-            ['country.tags', CollectionType::class, [
-                'entry_type' => TextType::class,
+            ['country.tags', ColumnType\CollectionType::class, [
+                'entry_type' => ColumnType\TextType::class,
                 'entry_options' => [
                     'property_path' => new PropertyPath('id'),
                 ],
@@ -400,8 +395,8 @@ class IntegrationTest extends TestCase
             '<td>1,&nbsp;2</td>',
         ];
         yield [
-            ['[country][tags]', CollectionType::class, [
-                'entry_type' => TextType::class,
+            ['[country][tags]', ColumnType\CollectionType::class, [
+                'entry_type' => ColumnType\TextType::class,
                 'entry_options' => [
                     'property_path' => new PropertyPath('[id]'),
                 ],
@@ -412,14 +407,14 @@ class IntegrationTest extends TestCase
             '<td>1,&nbsp;2</td>',
         ];
         yield [
-            ['desks', CollectionType::class, []],
+            ['desks', ColumnType\CollectionType::class, []],
             [
                 new Room(desks: [new RoomDesk(name: 'desk1'), new RoomDesk(name: 'desk2')]),
             ],
             '<td>desk1,&nbsp;desk2</td>',
         ];
         yield [
-            ['desks[1].screens', CollectionType::class, []],
+            ['desks[1].screens', ColumnType\CollectionType::class, []],
             [
                 new Room(desks: [
                     new RoomDesk(screens: [
@@ -435,7 +430,7 @@ class IntegrationTest extends TestCase
             '<td>screen3,&nbsp;screen4</td>',
         ];
         yield [
-            ['desks[1].screens', CollectionType::class, ['entry_type' => LinkType::class]],
+            ['desks[1].screens', ColumnType\CollectionType::class, ['entry_type' => LinkType::class]],
             [
                 new Room(desks: [
                     new RoomDesk(screens: [
@@ -451,11 +446,11 @@ class IntegrationTest extends TestCase
             '<td><a href="book/3">screen3</a>,&nbsp;<a href="book/4">screen4</a></td>',
         ];
         yield [
-            ['desks', CollectionType::class, [
-                'entry_type' => CollectionType::class,
+            ['desks', ColumnType\CollectionType::class, [
+                'entry_type' => ColumnType\CollectionType::class,
                 'entry_options' => [
                     'property_path' => new PropertyPath('screens'),
-                    'entry_type' => TextType::class,
+                    'entry_type' => ColumnType\TextType::class,
                 ],
             ]],
             [
@@ -473,7 +468,7 @@ class IntegrationTest extends TestCase
             '<td>screen1,&nbsp;screen2,&nbsp;screen3,&nbsp;screen4</td>',
         ];
         yield [
-            ['registrations', TableType::class, ['table_type' => EventRegistrationsTableType::class]],
+            ['registrations', ColumnType\TableType::class, ['table_type' => EventRegistrationsTableType::class]],
             [
                 new Event(registrations: [
                     new EventRegistration(1, 'registration1'),
