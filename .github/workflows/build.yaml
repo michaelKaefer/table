@@ -1,0 +1,66 @@
+name: Continuous Integration
+
+on:
+    push:
+        branches:
+            - 0.x
+    pull_request: ~
+
+jobs:
+    check:
+        runs-on: ubuntu-24.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+            - name: Validate composer.json
+              run: composer validate --strict --no-check-lock
+    cs-fixer:
+        runs-on: ubuntu-24.04
+        name: PHP-CS-Fixer
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+            - name: Fix CS
+              uses: docker://oskarstark/php-cs-fixer-ga
+              with:
+                args: --diff --dry-run
+    tests:
+        runs-on: ubuntu-24.04
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - description: 'No Symfony specified'
+                      php: '8.4'
+                    - description: 'No Symfony specified'
+                      php: '8.5'
+                    - description: 'Lowest deps'
+                      php: '8.4'
+                      dependencies: lowest
+                    - description: 'Symfony 8.1'
+                      php: '8.4'
+                      symfony: 8.1.*
+                    - description: 'Dev deps'
+                      php: '8.6'
+                      dev: true
+        name: PHP ${{ matrix.php }} tests (${{ matrix.description }})
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  tools: flex
+            - name: Allow possible dev dependencies
+              run: composer config minimum-stability dev
+              if: matrix.dev
+            - name: Install dependencies
+              uses: ramsey/composer-install@v4
+              with:
+                  dependency-versions: ${{ matrix.dependencies }}
+              env:
+                  SYMFONY_REQUIRE: ${{ matrix.symfony }}
+            - run: vendor/bin/phpunit --colors=always

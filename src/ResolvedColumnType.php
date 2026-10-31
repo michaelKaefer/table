@@ -12,9 +12,9 @@ final class ResolvedColumnType
     /**
      * @param array<ColumnTypeExtensionInterface> $extensions
      */
-    public function __construct(private readonly ColumnTypeInterface $innerType, ?ResolvedColumnType $parent, private readonly array $extensions)
+    public function __construct(private readonly ColumnTypeInterface $innerType, ?self $parent, private readonly array $extensions)
     {
-        $this->parents = $parent !== null ? [$parent, ...$parent->getParents()] : [];
+        $this->parents = null !== $parent ? [$parent, ...$parent->getParents()] : [];
     }
 
     public function getInnerType(): ColumnTypeInterface

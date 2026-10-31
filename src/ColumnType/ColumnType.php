@@ -3,7 +3,6 @@
 namespace MichaelKaefer\Table\ColumnType;
 
 use MichaelKaefer\Table\AbstractColumnType;
-use MichaelKaefer\Table\TableBuilder;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyPath;
@@ -35,7 +34,7 @@ final class ColumnType extends AbstractColumnType
             ->setAllowedTypes('data_class', ['string', 'null'])
             ->setAllowedTypes('transformer', ['null', 'callable'])
             ->setNormalizer('property_path', static function (Options $options, $value) {
-                if (is_string($value)) {
+                if (\is_string($value)) {
                     return new PropertyPath($value);
                 }
 

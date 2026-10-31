@@ -3,8 +3,8 @@
 namespace MichaelKaefer\Table\Tests\Fixture\TableType;
 
 use MichaelKaefer\Table\AbstractTableType;
-use MichaelKaefer\Table\TableBuilder;
 use MichaelKaefer\Table\ColumnType\TextType;
+use MichaelKaefer\Table\TableBuilder;
 
 class EventRegistrationsTableType extends AbstractTableType
 {

@@ -20,7 +20,7 @@ class LinkTableTypeExtension extends AbstractTableTypeExtension
     {
         $builder->add('link_from_extension', LinkType::class, [
             'link_attr' => [
-                'target' => '_blank'
+                'target' => '_blank',
             ],
         ]);
     }

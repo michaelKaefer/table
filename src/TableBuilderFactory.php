@@ -2,7 +2,6 @@
 
 namespace MichaelKaefer\Table;
 
-use MichaelKaefer\Table\TableType\DataClassType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final readonly class TableBuilderFactory
@@ -26,7 +25,7 @@ final readonly class TableBuilderFactory
     {
         $resolver = new OptionsResolver();
 
-        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+        foreach (\array_reverse([$type, ...$type->getParents()]) as $type) {
             $type->getInnerType()->configureOptions($resolver);
             foreach ($type->getExtensions() as $extension) {
                 $extension->configureOptions($resolver);
@@ -38,7 +37,7 @@ final readonly class TableBuilderFactory
 
     private function buildTable(TableBuilder $builder, ResolvedTableType $type, array $options): void
     {
-        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+        foreach (\array_reverse([$type, ...$type->getParents()]) as $type) {
             $innerType = $type->getInnerType();
 
             $innerType->buildTable($builder, $options);

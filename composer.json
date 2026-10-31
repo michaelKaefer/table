@@ -12,9 +12,9 @@
     ],
     "require": {
         "php": ">=8.4",
-        "symfony/options-resolver": "8.2.x-dev",
-        "symfony/property-access": "8.2.x-dev",
-        "symfony/string": "8.2.x-dev"
+        "symfony/options-resolver": "^8.1",
+        "symfony/property-access": "^8.1",
+        "symfony/string": "^8.1"
     },
     "suggest": {
         "twig/twig": "^3.30"
@@ -35,7 +35,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-0.x": "0.1.x-dev"
+            "0.x-dev": "0.1.x-dev"
         }
     }
 }

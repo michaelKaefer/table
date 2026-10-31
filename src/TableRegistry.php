@@ -23,8 +23,8 @@ final class TableRegistry
     public function getTableType(string $class, array $checked = []): ResolvedTableType
     {
         if (isset($checked[$class])) {
-            $types = implode(' > ', [...array_keys($checked), $class]);
-            throw new \LogicException(sprintf('Circular reference detected for table type "%s".', $types));
+            $types = \implode(' > ', [...\array_keys($checked), $class]);
+            throw new \LogicException(\sprintf('Circular reference detected for table type "%s".', $types));
         }
 
         if (isset($this->resolvedTableTypes[$class])) {
@@ -34,7 +34,7 @@ final class TableRegistry
         $checked[$class] = true;
 
         if (!$this->tableTypes->has($class)) {
-            throw new \InvalidArgumentException(sprintf('Table type "%s" could not be found', $class));
+            throw new \InvalidArgumentException(\sprintf('Table type "%s" could not be found', $class));
         }
 
         $type = $this->tableTypes->get($class);
@@ -65,8 +65,8 @@ final class TableRegistry
     public function getColumnType(string $class, array $checked = []): ResolvedColumnType
     {
         if (isset($checked[$class])) {
-            $types = implode(' > ', array_merge(array_keys($checked), [$class]));
-            throw new \LogicException(sprintf('Circular reference detected for column type "%s".', $types));
+            $types = \implode(' > ', \array_merge(\array_keys($checked), [$class]));
+            throw new \LogicException(\sprintf('Circular reference detected for column type "%s".', $types));
         }
 
         if (isset($this->resolvedColumnTypes[$class])) {
@@ -76,7 +76,7 @@ final class TableRegistry
         $checked[$class] = true;
 
         if (!$this->columnTypes->has($class)) {
-            throw new \InvalidArgumentException(sprintf('Column type "%s" could not be found', $class));
+            throw new \InvalidArgumentException(\sprintf('Column type "%s" could not be found', $class));
         }
 
         $type = $this->columnTypes->get($class);

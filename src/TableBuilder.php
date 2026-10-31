@@ -11,7 +11,7 @@ final class TableBuilder
         $this->table = new TableConfig($options);
     }
 
-    public function add(string $name, string $type, array $options = []): TableBuilder
+    public function add(string $name, string $type, array $options = []): self
     {
         $this->table->add($name, $type, $options);
 

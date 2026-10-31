@@ -60,11 +60,11 @@ final readonly class TableViewFactory
         $rows = [];
 
         foreach ($unsortedRows as $unsortedRow) {
-            krsort($unsortedRow);
+            \krsort($unsortedRow);
 
             $row = [];
             foreach ($unsortedRow as $cells) {
-                $row = array_merge($row, $cells);
+                $row = \array_merge($row, $cells);
             }
 
             $rows[] = $row;

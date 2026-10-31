@@ -8,16 +8,20 @@ use MichaelKaefer\Table\Accessor\ChainAccessor;
 use MichaelKaefer\Table\Accessor\PropertyPathAccessor;
 use MichaelKaefer\Table\CellViewFactory;
 use MichaelKaefer\Table\ColumnType\BooleanType;
+use MichaelKaefer\Table\ColumnType\CollectionType;
 use MichaelKaefer\Table\ColumnType\ColumnType;
 use MichaelKaefer\Table\ColumnType\DateTimeType;
+use MichaelKaefer\Table\ColumnType\TableType;
+use MichaelKaefer\Table\ColumnType\TextType;
+use MichaelKaefer\Table\Renderer\TwigRenderer;
 use MichaelKaefer\Table\TableBuilder;
 use MichaelKaefer\Table\TableBuilderFactory;
 use MichaelKaefer\Table\TableConfig;
 use MichaelKaefer\Table\TableFactory;
 use MichaelKaefer\Table\TableRegistry;
 use MichaelKaefer\Table\TableType\DataClassType;
-use MichaelKaefer\Table\TableTypeExtensionInterface;
 use MichaelKaefer\Table\TableViewFactory;
+use MichaelKaefer\Table\Tests\Fixture\ColumnType\LinkType;
 use MichaelKaefer\Table\Tests\Fixture\Event;
 use MichaelKaefer\Table\Tests\Fixture\EventRegistration;
 use MichaelKaefer\Table\Tests\Fixture\Page;
@@ -28,19 +32,12 @@ use MichaelKaefer\Table\Tests\Fixture\PersonCountryTag;
 use MichaelKaefer\Table\Tests\Fixture\Room;
 use MichaelKaefer\Table\Tests\Fixture\RoomDesk;
 use MichaelKaefer\Table\Tests\Fixture\RoomDeskScreen;
-use MichaelKaefer\Table\ColumnType\CollectionType;
-use MichaelKaefer\Table\ColumnType\TableType;
-use MichaelKaefer\Table\ColumnType\TextType;
-use MichaelKaefer\Table\Tests\Fixture\ColumnType\LinkType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\EmptyTableType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\EventRegistrationsTableType;
 use MichaelKaefer\Table\Tests\Fixture\TableType\PersonTableType;
-use MichaelKaefer\Table\Renderer\TwigRenderer;
-use phpDocumentor\Reflection\PseudoTypes\ArrayKey;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Twig\Environment;
@@ -59,22 +56,21 @@ class IntegrationTest extends TestCase
         $tableViewFactory = $this->lazy($tableViewFactory, TableViewFactory::class);
 
         $tableRegistry = new TableRegistry(
-            new class() implements ContainerInterface
-            {
+            new class implements ContainerInterface {
                 private array $services;
 
                 public function __construct()
                 {
                     $this->services = [
                         \MichaelKaefer\Table\TableType\TableType::class => new \MichaelKaefer\Table\TableType\TableType(),
-                        Fixture\TableType\EmptyTableType::class => new Fixture\TableType\EmptyTableType(),
-                        Fixture\TableType\PersonTableType::class => new Fixture\TableType\PersonTableType(),
-                        Fixture\TableType\EventRegistrationsTableType::class => new Fixture\TableType\EventRegistrationsTableType(),
+                        EmptyTableType::class => new EmptyTableType(),
+                        PersonTableType::class => new PersonTableType(),
+                        EventRegistrationsTableType::class => new EventRegistrationsTableType(),
                         Page::class => new DataClassType(Page::class, [
                             'id' => [TextType::class, []],
                             'name' => [TextType::class, []],
                             'pageCategories' => [CollectionType::class, []],
-                        ], [])
+                        ], []),
                     ];
                 }
 
@@ -90,10 +86,10 @@ class IntegrationTest extends TestCase
             },
             [
                 new Fixture\TableType\LinkTableTypeExtension(),
-                new class() extends AbstractTableTypeExtension {
+                new class extends AbstractTableTypeExtension {
                     public function getExtendedTypes(): iterable
                     {
-                        yield Fixture\TableType\PersonTableType::class;
+                        yield PersonTableType::class;
                     }
 
                     public function buildTable(TableBuilder $builder, array $options): void
@@ -102,8 +98,7 @@ class IntegrationTest extends TestCase
                     }
                 },
             ],
-            new class($cellViewFactory, $tableFactory, $tableViewFactory) implements ContainerInterface
-            {
+            new class($cellViewFactory, $tableFactory, $tableViewFactory) implements ContainerInterface {
                 private array $services;
 
                 public function __construct($cellViewFactory, $tableFactory, $tableViewFactory)
@@ -115,7 +110,7 @@ class IntegrationTest extends TestCase
                         DateTimeType::class => new DateTimeType(),
                         CollectionType::class => new CollectionType($cellViewFactory),
                         TableType::class => new TableType($tableFactory, $tableViewFactory),
-                        Fixture\ColumnType\LinkType::class => new Fixture\ColumnType\LinkType(),
+                        LinkType::class => new LinkType(),
                     ];
                 }
 
@@ -175,28 +170,28 @@ class IntegrationTest extends TestCase
         ];
 
         $expected = <<<HTML
-        <table>
-            <thead>
-                <tr>
-                    <th>id</th>
-                    <th>name</th>
-                    <th>country</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Person 1</td>
-                    <td>France</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Person 2</td>
-                    <td>France</td>
-                </tr>
-            </tbody>
-        </table>
-        HTML;
+            <table>
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>name</th>
+                        <th>country</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Person 1</td>
+                        <td>France</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Person 2</td>
+                        <td>France</td>
+                    </tr>
+                </tbody>
+            </table>
+            HTML;
 
         $this->assertTable($expected, $table, $iterable);
     }
@@ -208,14 +203,14 @@ class IntegrationTest extends TestCase
             ->add(...$column);
 
         $expected = <<<HTML
-        <table>
-            <tbody>
-                <tr>
-                    $expected
-                </tr>
-            </tbody>
-        </table>
-        HTML;
+            <table>
+                <tbody>
+                    <tr>
+                        $expected
+                    </tr>
+                </tbody>
+            </table>
+            HTML;
 
         $this->assertTable($expected, $table, $iterable);
     }
@@ -486,27 +481,27 @@ class IntegrationTest extends TestCase
                 ]),
             ],
             self::minifyHtml(<<<HTML
-            <td>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>id</th>
-                            <th>name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>registration1</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>registration2</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </td>
-            HTML),
+                <td>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>registration1</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>registration2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+                HTML),
         ];
     }
 
@@ -517,19 +512,19 @@ class IntegrationTest extends TestCase
         $iterable = [];
 
         $expected = <<<HTML
-        <table>
-            <thead>
-                <tr>
-                    <th>id</th>
-                    <th>name</th>
-                    <th>pageCategories</th>
-                    <th>link_from_extension</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        HTML;
+            <table>
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>name</th>
+                        <th>pageCategories</th>
+                        <th>link_from_extension</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            HTML;
 
         $this->assertTable($expected, $table, $iterable);
     }
@@ -546,19 +541,19 @@ class IntegrationTest extends TestCase
         $iterable = [];
 
         $expected = <<<HTML
-        <table class="attr">
-            <thead class="head_attr">
-                <tr>
-                    <th>id</th>
-                    <th>name</th>
-                    <th>pageCategories</th>
-                    <th>link_from_extension</th>
-                </tr>
-            </thead>
-            <tbody class="body_attr">
-            </tbody>
-        </table>
-        HTML;
+            <table class="attr">
+                <thead class="head_attr">
+                    <tr>
+                        <th>id</th>
+                        <th>name</th>
+                        <th>pageCategories</th>
+                        <th>link_from_extension</th>
+                    </tr>
+                </thead>
+                <tbody class="body_attr">
+                </tbody>
+            </table>
+            HTML;
 
         $this->assertTable($expected, $table, $iterable);
     }
@@ -574,7 +569,7 @@ class IntegrationTest extends TestCase
 
     private static function minifyHtml(string $html): string
     {
-        return preg_replace('/>\s+</', '><', $html);
+        return \preg_replace('/>\s+</', '><', $html);
     }
 
     private function lazy(null &$service, string $class): CellViewFactory|TableFactory|TableViewFactory
@@ -583,7 +578,7 @@ class IntegrationTest extends TestCase
          * @var CellViewFactory|TableFactory|TableViewFactory $service
          */
         $service = new \ReflectionClass($class)->newLazyProxy(
-            function () use (&$service): CellViewFactory|TableFactory|TableViewFactory {
+            static function () use (&$service): CellViewFactory|TableFactory|TableViewFactory {
                 return $service;
             }
         );

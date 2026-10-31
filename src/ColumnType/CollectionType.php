@@ -25,8 +25,8 @@ final class CollectionType extends AbstractColumnType
 
     public function transformData(mixed $data, array $options): array
     {
-        if (!is_iterable($data)) {
-            throw new \LogicException(sprintf('The given value is not iterable. Value is of type %s.', get_debug_type($data)));
+        if (!\is_iterable($data)) {
+            throw new \LogicException(\sprintf('The given value is not iterable. Value is of type %s.', \get_debug_type($data)));
         }
 
         $cellViews = [];

@@ -15,7 +15,7 @@ class AsTableTypePass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        foreach (array_keys($container->findTaggedResourceIds('table.as_table_type', false)) as $id) {
+        foreach (\array_keys($container->findTaggedResourceIds('table.as_table_type', false)) as $id) {
             $class = $container->getDefinition($id)->getClass();
 
             $reflector = $container->getReflectionClass($class);
@@ -32,7 +32,7 @@ class AsTableTypePass implements CompilerPassInterface
 
             foreach ($asTableType->columns as $column) {
                 if (!$column->name) {
-                    throw new \InvalidArgumentException(sprintf('Columns defined in "%s" must set a "name".', TableColumn::class));
+                    throw new \InvalidArgumentException(\sprintf('Columns defined in "%s" must set a "name".', TableColumn::class));
                 }
 
                 $columns[$column->name] = [
@@ -50,7 +50,7 @@ class AsTableTypePass implements CompilerPassInterface
                 $tableColumn = $property->getAttributes(TableColumn::class)[0]->newInstance();
 
                 if (isset($tableColumn->options['property_path'])) {
-                    throw new \InvalidArgumentException(sprintf('Option "property_path" is not allowed in "%s".', TableColumn::class));
+                    throw new \InvalidArgumentException(\sprintf('Option "property_path" is not allowed in "%s".', TableColumn::class));
                 }
 
                 $columnOptions = ['property_path' => $property->getName()] + $tableColumn->options;

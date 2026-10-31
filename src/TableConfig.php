@@ -7,13 +7,13 @@ final class TableConfig
     /**
      * @var array<int, ColumnConfig>
      */
-    private(set) array $columns = [];
+    public private(set) array $columns = [];
 
-    public function __construct(private(set) readonly array $options)
+    public function __construct(public private(set) readonly array $options)
     {
     }
 
-    public function add(string $name, string $type, array $options): TableConfig
+    public function add(string $name, string $type, array $options): self
     {
         $this->columns[] = new ColumnConfig($name, $type, $options);
 

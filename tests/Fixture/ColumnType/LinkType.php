@@ -26,7 +26,7 @@ final class LinkType extends AbstractColumnType
     public function transformData(mixed $data, array $options): mixed
     {
         if (!$data instanceof LinkableInterface) {
-            throw new \InvalidArgumentException(sprintf('LinkType only supports type "%s" but got "%s".', LinkableInterface::class, get_debug_type($value)));
+            throw new \InvalidArgumentException(\sprintf('LinkType only supports type "%s" but got "%s".', LinkableInterface::class, \get_debug_type($value)));
         }
 
         return ['target' => 'book/'.$data->getId(), 'label' => $data->getName()];

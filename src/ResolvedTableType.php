@@ -12,9 +12,9 @@ final class ResolvedTableType
     /**
      * @param array<TableTypeExtensionInterface> $extensions
      */
-    public function __construct(private readonly TableTypeInterface $innerType, ?ResolvedTableType $parent, private readonly array $extensions)
+    public function __construct(private readonly TableTypeInterface $innerType, ?self $parent, private readonly array $extensions)
     {
-        $this->parents = $parent !== null ? [$parent, ...$parent->getParents()] : [];
+        $this->parents = null !== $parent ? [$parent, ...$parent->getParents()] : [];
     }
 
     public function getInnerType(): TableTypeInterface

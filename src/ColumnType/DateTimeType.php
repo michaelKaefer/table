@@ -10,8 +10,8 @@ final class DateTimeType extends AbstractColumnType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-                'format' => \DateTimeInterface::RFC3339,
-            ])
+            'format' => \DateTimeInterface::RFC3339,
+        ])
             ->setAllowedTypes('format', 'string');
     }
 
@@ -27,7 +27,7 @@ final class DateTimeType extends AbstractColumnType
         }
 
         if (!$data instanceof \DateTimeInterface) {
-            throw new \InvalidArgumentException(sprintf('Could not build cell view for value of type "%s". Expected value of type "%s".', get_debug_type($data), \DateTimeInterface::class));
+            throw new \InvalidArgumentException(\sprintf('Could not build cell view for value of type "%s". Expected value of type "%s".', \get_debug_type($data), \DateTimeInterface::class));
         }
 
         return $data->format($options['format']);

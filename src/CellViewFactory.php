@@ -18,7 +18,7 @@ final readonly class CellViewFactory
 
         $options = $this->resolve($columnType, $options);
 
-        if (is_object($value) || is_array($value)) {
+        if (\is_object($value) || \is_array($value)) {
             $propertyPath = $this->propertyPath($name, $options);
 
             if ($this->accessor->isReadable($value, $propertyPath, $options['getter'])) {
@@ -84,7 +84,7 @@ final readonly class CellViewFactory
     {
         $resolver = new OptionsResolver();
 
-        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+        foreach (\array_reverse([$type, ...$type->getParents()]) as $type) {
             $type->getInnerType()->configureOptions($resolver);
             foreach ($type->getExtensions() as $columnTypeExtension) {
                 $columnTypeExtension->configureOptions($resolver);
@@ -104,7 +104,7 @@ final readonly class CellViewFactory
             $value = ($options['transformer'])($value);
         }
 
-        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+        foreach (\array_reverse([$type, ...$type->getParents()]) as $type) {
             $value = $type->getInnerType()->transformData($value, $options);
 
             foreach ($type->getExtensions() as $columnTypeExtension) {
@@ -117,7 +117,7 @@ final readonly class CellViewFactory
 
     private function buildView(ResolvedColumnType $type, CellView $cellView, array $options): void
     {
-        foreach (array_reverse([$type, ...$type->getParents()]) as $type) {
+        foreach (\array_reverse([$type, ...$type->getParents()]) as $type) {
             $type->getInnerType()->buildView($cellView, $options);
 
             foreach ($type->getExtensions() as $columnTypeExtension) {
