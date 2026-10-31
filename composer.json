@@ -32,5 +32,10 @@
     "require-dev": {
         "phpunit/phpunit": "^13.0",
         "twig/twig": "^3.30"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-0.x": "0.1.x-dev"
+        }
     }
 }
